@@ -1,1266 +1,448 @@
-```html
 <!DOCTYPE html>
 <html lang="te">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>సహాయ్ AI (Sahay AI) - అందరి నేస్తం</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter & Noto Sans Telugu Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>సహాయ్ AI • Train • Serve • Improve</title>
     <style>
-        body {
-            font-family: 'Noto Sans Telugu', 'Inter', sans-serif;
-            background-color: #f1f5f9;
-            color: #0f172a;
-            overflow-x: hidden;
-        }
-        @keyframes pulseRing {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
-            70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-        .listening-pulse {
-            animation: pulseRing 1.4s infinite;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 9999px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f1f5f9; color: #0f172a; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: linear-gradient(135deg, #0f172a, #1d4ed8); color: #ffffff; padding: 15px 18px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 3px 12px rgba(15, 23, 42, 0.2); }
+        header h1 { font-size: 1.2rem; margin-bottom: 2px; }
+        header p { font-size: 0.76rem; opacity: 0.9; }
+        .cfg-btn { background: #16a34a; color: #ffffff; border: none; padding: 8px 12px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; cursor: pointer; }
+        .top-nav { display: flex; overflow-x: auto; background: #ffffff; border-bottom: 1px solid #cbd5e1; padding: 8px 12px; gap: 8px; position: sticky; top: 64px; z-index: 900; }
+        .nav-pill { flex: 0 0 auto; background: #e2e8f0; color: #1e293b; border: none; padding: 9px 14px; border-radius: 20px; font-size: 0.86rem; font-weight: 700; cursor: pointer; }
+        .nav-pill.active { background: #1d4ed8; color: #ffffff; }
+        .wrap { flex: 1; max-width: 740px; width: 100%; margin: 0 auto; padding: 14px; padding-bottom: 84px; }
+        .pane { display: none; }
+        .pane.active { display: block; }
+        .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+        .metric-card { background: #ffffff; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05); }
+        .metric-card strong { display: block; font-size: 1.3rem; color: #1d4ed8; }
+        .metric-card span { font-size: 0.76rem; color: #475569; }
+        .panel { background: #ffffff; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06); }
+        .panel h3 { font-size: 1.04rem; color: #0f172a; margin-bottom: 5px; }
+        .panel p.hint { font-size: 0.85rem; color: #475569; margin-bottom: 12px; line-height: 1.45; }
+        label { display: block; font-size: 0.84rem; font-weight: 700; color: #334155; margin-bottom: 5px; }
+        input[type="text"], input[type="password"], textarea, select { width: 100%; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font-size: 0.95rem; margin-bottom: 12px; background: #ffffff; color: #0f172a; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #1d4ed8; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { flex: 1; min-width: 115px; padding: 11px 13px; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; color: #ffffff; }
+        .btn-blue { background: #1d4ed8; }
+        .btn-teal { background: #0f766e; }
+        .btn-green { background: #16a34a; }
+        .btn-red { background: #dc2626; }
+        .btn-gray { background: #64748b; }
+        .result-box { margin-top: 12px; padding: 14px; border-radius: 10px; background: #f8fafc; border-left: 4px solid #1d4ed8; line-height: 1.6; display: none; }
+        .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #dbeafe; color: #1d4ed8; margin-bottom: 8px; }
+        .badge.trained { background: #ccfbf1; color: #0f766e; }
+        .item-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin-bottom: 10px; background: #ffffff; }
+        .item-q { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+        .item-a { font-size: 0.9rem; color: #334155; margin-bottom: 8px; line-height: 1.45; }
+        .item-foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.78rem; color: #64748b; }
+        .status-msg { margin-top: 8px; font-size: 0.85rem; font-weight: 700; color: #0f766e; }
+        footer { background: #0f172a; color: #cbd5e1; text-align: center; padding: 11px; font-size: 0.8rem; position: fixed; bottom: 0; width: 100%; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+<body>
 
-    <!-- 1. Sticky Header with Title, Tagline, and Settings Modal Trigger -->
-    <header class="sticky top-0 z-40 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white shadow-md">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl select-none" aria-hidden="true">🤖</span>
-                    <h1 class="text-lg sm:text-xl font-bold tracking-tight truncate">
-                        సహాయ్ AI (Sahay AI) - అందరి నేస్తం
-                    </h1>
-                </div>
-                <p class="text-xs sm:text-sm text-blue-100 truncate mt-0.5">
-                    చిన్నపిల్లల నుండి పెద్దల వరకు — మాట, ఫోటో, సేవలతో స్మార్ట్ తోడు
-                </p>
-            </div>
+<header>
+    <div>
+        <h1>⚡ సహాయ్ AI • Sahaya AI</h1>
+        <p>Train it • Serve it • Improve it</p>
+    </div>
+    <button class="cfg-btn" id="jumpCfgBtn">🔐 అడ్మిన్</button>
+</header>
 
-            <div class="flex items-center gap-2 shrink-0">
-                <span id="modeBadge" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/15 text-blue-50 border border-white/20">
-                    డెమో మోడ్
-                </span>
-                <button
-                    id="openSettingsBtn"
-                    type="button"
-                    onclick="openSettingsModal()"
-                    class="p-2.5 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 transition cursor-pointer border border-white/20"
-                    title="సెట్టింగ్స్ & API కీ"
-                    aria-label="సెట్టింగ్స్ & API కీ"
-                >
-                    ⚙️
-                </button>
-            </div>
-        </div>
-    </header>
+<div class="top-nav">
+    <button class="nav-pill active" id="pillServe">🚀 1. Serve it</button>
+    <button class="nav-pill" id="pillTrain">🔐 2. Train it</button>
+    <button class="nav-pill" id="pillImprove">🔐 3. Improve it</button>
+    <button class="nav-pill" id="pillCfg">🔐 AI కనెక్షన్</button>
+</div>
 
-    <!-- Toast / Status Banner (replaces alert/confirm) -->
-    <div id="statusToast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] bg-slate-900 text-white text-sm px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center justify-between gap-3">
-        <span id="statusToastText"></span>
-        <button type="button" onclick="hideToast()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 rounded-lg cursor-pointer">✕</button>
+<div class="wrap">
+    <div class="metrics">
+        <div class="metric-card"><strong id="mTrained">0</strong><span>Trained Data</span></div>
+        <div class="metric-card"><strong id="mGood">0</strong><span>Approved (👍)</span></div>
+        <div class="metric-card"><strong id="mImprove">0</strong><span>To Improve (👎)</span></div>
     </div>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 max-w-4xl w-full mx-auto px-4 pt-5 pb-24 space-y-5">
-
-        <!-- 2. Quick Category Cards in Telugu -->
-        <section aria-label="ప్రధాన విభాగాలు">
-            <div class="flex items-center justify-between mb-2.5">
-                <h2 class="text-sm sm:text-base font-bold text-slate-800">
-                    మీకు దేని గురించి సహాయం కావాలి?
-                </h2>
-                <span class="text-xs text-slate-500">విభాగం ఎంచుకోండి</span>
+    <!-- 1. SERVE IT -->
+    <div id="servePane" class="pane active">
+        <div class="panel">
+            <h3>🚀 Serve it — లైవ్ AI సేవ</h3>
+            <p class="hint">ముందుగా ట్రైన్ చేసిన డేటా నుండి సమాధానం ఇస్తుంది; దొరకకపోతే కనెక్ట్ చేసిన Google Apps Script / AI నుండి సమాధానం ఇస్తుంది.</p>
+            <label for="qInput">ప్రశ్న రాయండి</label>
+            <textarea id="qInput" rows="3" placeholder="ఏదైనా ప్రశ్న అడగండి..."></textarea>
+            <div class="actions">
+                <button class="btn btn-blue" id="serveBtn">✨ సమాధానం పొందండి</button>
+                <button class="btn btn-gray" id="speakBtn">🔊 వినండి</button>
             </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3" id="categoryGrid">
-                <button
-                    type="button"
-                    data-cat="study"
-                    onclick="selectCategory('study')"
-                    class="cat-card group bg-white hover:bg-blue-50/70 border-2 border-slate-200 rounded-2xl p-3 text-left transition shadow-sm hover:shadow cursor-pointer flex flex-col justify-between"
-                >
-                    <span class="text-2xl mb-1.5 block group-hover:scale-105 transition-transform">📚</span>
-                    <div>
-                        <div class="font-bold text-sm text-slate-800 leading-snug">విద్య &amp; చదువు</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">పాఠాలు, లెక్కలు</div>
-                    </div>
-                </button>
-
-                <button
-                    type="button"
-                    data-cat="health"
-                    onclick="selectCategory('health')"
-                    class="cat-card group bg-white hover:bg-emerald-50/70 border-2 border-slate-200 rounded-2xl p-3 text-left transition shadow-sm hover:shadow cursor-pointer flex flex-col justify-between"
-                >
-                    <span class="text-2xl mb-1.5 block group-hover:scale-105 transition-transform">🩺</span>
-                    <div>
-                        <div class="font-bold text-sm text-slate-800 leading-snug">పెద్దల ఆరోగ్యం</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">చిట్కాలు, జాగ్రత్తలు</div>
-                    </div>
-                </button>
-
-                <button
-                    type="button"
-                    data-cat="recipes"
-                    onclick="selectCategory('recipes')"
-                    class="cat-card group bg-white hover:bg-amber-50/70 border-2 border-slate-200 rounded-2xl p-3 text-left transition shadow-sm hover:shadow cursor-pointer flex flex-col justify-between"
-                >
-                    <span class="text-2xl mb-1.5 block group-hover:scale-105 transition-transform">🍲</span>
-                    <div>
-                        <div class="font-bold text-sm text-slate-800 leading-snug">ఇంటి వంటకాలు</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">రుచికరమైన వంటలు</div>
-                    </div>
-                </button>
-
-                <button
-                    type="button"
-                    data-cat="business"
-                    onclick="selectCategory('business')"
-                    class="cat-card group bg-white hover:bg-purple-50/70 border-2 border-slate-200 rounded-2xl p-3 text-left transition shadow-sm hover:shadow cursor-pointer flex flex-col justify-between"
-                >
-                    <span class="text-2xl mb-1.5 block group-hover:scale-105 transition-transform">💼</span>
-                    <div>
-                        <div class="font-bold text-sm text-slate-800 leading-snug">వ్యాపార సలహాలు</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">ఉపాధి, ఆలోచనలు</div>
-                    </div>
-                </button>
-
-                <button
-                    type="button"
-                    data-cat="local"
-                    onclick="selectCategory('local')"
-                    class="cat-card col-span-2 sm:col-span-1 group bg-white hover:bg-indigo-50/70 border-2 border-slate-200 rounded-2xl p-3 text-left transition shadow-sm hover:shadow cursor-pointer flex flex-col justify-between"
-                >
-                    <span class="text-2xl mb-1.5 block group-hover:scale-105 transition-transform">🏪</span>
-                    <div>
-                        <div class="font-bold text-sm text-slate-800 leading-snug">స్థానిక షాపులు &amp; సేవలు</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">దగ్గర్లోని సేవలు</div>
-                    </div>
-                </button>
-            </div>
-        </section>
-
-        <!-- 3. Ask AI Card with Camera/Photo Upload, Sample Photo Toggle, Voice & Submit -->
-        <section aria-label="ప్రశ్న & ఫోటో అడిగే విభాగం" class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <label for="questionInput" class="text-sm sm:text-base font-bold text-slate-800">
-                    మీ ప్రశ్న అడగండి లేదా ఫోటో తీసి పంపండి
-                </label>
-                <span id="activeCategoryPill" class="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                    సాధారణ సహాయం
-                </span>
-            </div>
-
-            <!-- Question Textarea -->
-            <textarea
-                id="questionInput"
-                rows="3"
-                placeholder="మీ ప్రశ్నను ఇక్కడ టైప్ చేయండి లేదా మైక్ నొక్కి తెలుగులో మాట్లాడండి... (ఉదా: ఈ ఫోటోలోని మందు/వస్తువు గురించి చెప్పండి)"
-                class="w-full rounded-2xl border-2 border-slate-200 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none p-3.5 text-sm sm:text-base text-slate-800 transition resize-y"
-            ></textarea>
-
-            <!-- Photo / Camera Controls & Sample Photo Toggle -->
-            <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-3">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <!-- Camera Capture Input -->
-                        <label class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-slate-800 border border-slate-300 text-xs sm:text-sm font-semibold cursor-pointer shadow-2xs transition active:scale-95">
-                            <span>📷</span>
-                            <span>ఫోటో తీయండి</span>
-                            <input
-                                id="cameraInput"
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                class="hidden"
-                                onchange="handleFileSelect(event)"
-                            />
-                        </label>
-
-                        <!-- Gallery / File Picker Input -->
-                        <label class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-slate-800 border border-slate-300 text-xs sm:text-sm font-semibold cursor-pointer shadow-2xs transition active:scale-95">
-                            <span>🖼️</span>
-                            <span>ఫోటో ఎంచుకోండి</span>
-                            <input
-                                id="galleryInput"
-                                type="file"
-                                accept="image/*"
-                                class="hidden"
-                                onchange="handleFileSelect(event)"
-                            />
-                        </label>
-
-                        <button
-                            id="clearPhotoBtn"
-                            type="button"
-                            onclick="clearPhoto()"
-                            class="hidden inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer transition"
-                        >
-                            <span>🗑️</span>
-                            <span>ఫోటో తీసివేయండి</span>
-                        </button>
-                    </div>
-
-                    <!-- Sample Photo Toggle -->
-                    <label class="inline-flex items-center gap-2.5 cursor-pointer select-none bg-white px-3 py-2 rounded-xl border border-slate-200 self-start sm:self-auto">
-                        <input
-                            id="samplePhotoToggle"
-                            type="checkbox"
-                            onchange="toggleSamplePhoto(this.checked)"
-                            class="w-4 h-4 accent-blue-600 rounded cursor-pointer"
-                        />
-                        <span class="text-xs sm:text-sm font-medium text-slate-700">
-                            నమూనా ఫోటో విశ్లేషించండి (Sample Photo)
-                        </span>
-                    </label>
-                </div>
-
-                <!-- Sample Photo Selector (shown when toggle is active) -->
-                <div id="sampleSelectorWrap" class="hidden flex flex-wrap items-center gap-2 pt-1">
-                    <span class="text-xs font-semibold text-slate-600">నమూనా రకం:</span>
-                    <button type="button" data-sample="medicine" onclick="chooseSample('medicine')" class="sample-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white cursor-pointer transition">
-                        💊 మందుల స్ట్రిప్
-                    </button>
-                    <button type="button" data-sample="textbook" onclick="chooseSample('textbook')" class="sample-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition">
-                        📖 పాఠ్యపుస్తక పేజీ
-                    </button>
-                    <button type="button" data-sample="dish" onclick="chooseSample('dish')" class="sample-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition">
-                        🍛 ఇంటి వంటకం
-                    </button>
-                </div>
-
-                <!-- Preview Box -->
-                <div id="photoPreviewContainer" class="hidden pt-1">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 bg-white p-3 rounded-2xl border border-slate-200">
-                        <img
-                            id="photoPreviewImg"
-                            src=""
-                            alt="ఎంచుకున్న ఫోటో ప్రివ్యూ"
-                            onerror="this.src='https://placehold.co/320x200/e2e8f0/1e293b?text=Photo+Preview'"
-                            class="w-full sm:w-40 h-28 object-cover rounded-xl border border-slate-200 shrink-0"
-                        />
-                        <div class="space-y-1 min-w-0">
-                            <div id="photoSourceLabel" class="text-xs font-bold text-blue-700 uppercase tracking-wide"></div>
-                            <p id="photoCaptionText" class="text-xs sm:text-sm text-slate-600 leading-relaxed"></p>
-                            <p class="text-[11px] text-slate-400">
-                                "సమాధానం పొందండి" నొక్కితే ఈ ఫోటోను AI విశ్లేషిస్తుంది.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons: Telugu Voice Input & Ask AI -->
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button
-                    id="micBtn"
-                    type="button"
-                    onclick="toggleVoiceInput()"
-                    class="sm:w-auto flex-1 sm:flex-initial px-5 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-bold text-sm sm:text-base shadow-sm transition cursor-pointer flex items-center justify-center gap-2"
-                >
-                    <span id="micIcon">🎤</span>
-                    <span id="micLabel">తెలుగులో మాట్లాడండి</span>
-                </button>
-
-                <button
-                    id="askBtn"
-                    type="button"
-                    onclick="submitQuestion()"
-                    class="flex-1 px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-sm sm:text-base shadow-sm transition cursor-pointer flex items-center justify-center gap-2"
-                >
-                    <span>✨</span>
-                    <span>సమాధానం పొందండి</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- AI Response Card -->
-        <section id="responseSection" aria-live="polite" class="hidden bg-white rounded-3xl p-5 sm:p-6 shadow-sm border-l-4 border-blue-600 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="text-xl">💡</span>
-                    <h2 class="text-base sm:text-lg font-bold text-slate-900">సహాయ్ AI సమాధానం</h2>
-                    <span id="responseSourceTag" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600"></span>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button
-                        id="readAloudBtn"
-                        type="button"
-                        onclick="toggleReadAloud()"
-                        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs sm:text-sm font-bold transition cursor-pointer flex items-center gap-1.5"
-                    >
-                        <span id="readAloudIcon">🔊</span>
-                        <span id="readAloudLabel">వినండి (Read Aloud)</span>
-                    </button>
-                    <button
-                        type="button"
-                        onclick="copyAnswer()"
-                        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer"
-                        title="సమాధానం కాపీ చేయండి"
-                    >
-                        📋 కాపీ
-                    </button>
-                </div>
-            </div>
-
-            <div id="responseContent" class="text-sm sm:text-base text-slate-700 leading-relaxed space-y-2.5"></div>
-        </section>
-
-        <!-- 4. Local Shops & Services Directory Finder -->
-        <section id="localDirectorySection" aria-label="స్థానిక షాపులు & సేవలు" class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200/80 space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                <div>
-                    <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <span>🏪</span>
-                        <span>స్థానిక షాపులు &amp; సేవల డైరెక్టరీ</span>
-                    </h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        మీ సమీపంలోని నిత్యవసర, ఆటో, ఆరోగ్య మరియు రోజువారీ సేవలను సులభంగా వెతకండి
-                    </p>
-                </div>
-                <span id="directoryCount" class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 self-start sm:self-auto">
-                    8 సేవలు
-                </span>
-            </div>
-
-            <!-- Search Input -->
-            <div class="relative">
-                <input
-                    id="shopSearchInput"
-                    type="text"
-                    oninput="renderDirectory()"
-                    placeholder="షాపు లేదా సేవ పేరుతో వెతకండి (ఉదా: మొబైల్, టైర్, బ్యాటరీ, దంత, బేకరీ)..."
-                    class="w-full rounded-2xl border-2 border-slate-200 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 outline-none pl-10 pr-4 py-2.5 text-sm text-slate-800 transition"
-                />
-                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">🔍</span>
-            </div>
-
-            <!-- Category Filter Pills -->
-            <div id="serviceFilterPills" class="flex gap-2 overflow-x-auto pb-1">
-                <!-- Populated dynamically via JS -->
-            </div>
-
-            <!-- Directory Cards Grid -->
-            <div id="directoryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                <!-- Populated dynamically via JS -->
-            </div>
-        </section>
-
-    </main>
-
-    <!-- 7. Fixed Footer in Telugu -->
-    <footer class="fixed bottom-0 inset-x-0 z-30 bg-slate-900 text-slate-200 border-t border-slate-800 py-2.5 px-4 text-center text-xs sm:text-sm">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1">
-            <span>© 2026 <strong>సహాయ్ AI (Sahay AI)</strong> • అందరి నేస్తం స్టార్టప్</span>
-            <span class="text-slate-400 text-[11px] sm:text-xs">తెలుగు వాయిస్, ఫోటో సహాయం &amp; స్థానిక సేవల వేదిక</span>
-        </div>
-    </footer>
-
-    <!-- Settings & Gemini API Key Modal -->
-    <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
-        <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 id="settingsModalTitle" class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <span>⚙️</span>
-                    <span>సెట్టింగ్స్ &amp; Gemini API కీ</span>
-                </h2>
-                <button
-                    type="button"
-                    onclick="closeSettingsModal()"
-                    class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
-                    aria-label="మూసివేయండి"
-                >
-                    ✕
-                </button>
-            </div>
-
-            <div class="space-y-2 text-xs sm:text-sm text-slate-600 leading-relaxed">
-                <p>
-                    లైవ్ <strong>Gemini 2.5 Flash</strong> సమాధానాలు మరియు ఫోటో విశ్లేషణ కోసం మీ Google Gemini API కీని నమోదు చేయండి. కీ లేకపోయినా యాప్ స్మార్ట్ <strong>డెమో మోడ్</strong>లో పనిచేస్తుంది.
-                </p>
-            </div>
-
-            <div class="space-y-1.5">
-                <label for="apiKeyInput" class="block text-xs sm:text-sm font-bold text-slate-800">
-                    Gemini API Key
-                </label>
-                <input
-                    id="apiKeyInput"
-                    type="password"
-                    placeholder="AIzaSy..."
-                    class="w-full rounded-xl border-2 border-slate-200 focus:border-blue-600 outline-none px-3.5 py-2.5 text-sm text-slate-800"
-                />
-                <p class="text-[11px] text-slate-400">
-                    మీ కీ మీ బ్రౌజర్ (localStorage) లో మాత్రమే సురక్షితంగా దాచబడుతుంది.
-                </p>
-            </div>
-
-            <div class="flex items-center justify-between gap-2 pt-2">
-                <button
-                    type="button"
-                    onclick="clearApiKey()"
-                    class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold cursor-pointer transition"
-                >
-                    కీ తొలగించండి
-                </button>
-                <div class="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onclick="closeSettingsModal()"
-                        class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold hover:bg-slate-50 cursor-pointer transition"
-                    >
-                        రద్దు
-                    </button>
-                    <button
-                        type="button"
-                        onclick="saveApiKey()"
-                        class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold cursor-pointer transition"
-                    >
-                        సేవ్ చేయండి
-                    </button>
+            <div class="result-box" id="resultBox">
+                <span class="badge" id="sourceBadge">AI Output</span>
+                <div id="resultText"></div>
+                <div class="actions" style="margin-top:12px;">
+                    <button class="btn btn-green" id="goodBtn">👍 బాగుంది</button>
+                    <button class="btn btn-red" id="badBtn">👎 మెరుగుపరచాలి</button>
+                    <button class="btn btn-teal" id="saveCurrentBtn">🧠 Train లో చేర్చు</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // =====================================================================
-        // 1. APP STATE & CONSTANTS
-        // =====================================================================
-        const STORAGE_KEY_API = 'sahay_ai_gemini_api_key';
-        const GEMINI_MODEL = 'gemini-2.5-flash';
+    <!-- 2. TRAIN IT (LOCKED BY PIN) -->
+    <div id="trainPane" class="pane">
+        <div class="panel">
+            <h3>🔐 Train it — AI కి కొత్త సమాచారం నేర్పండి (మీకు మాత్రమే)</h3>
+            <p class="hint">మీ సమాధానాలు, నియమాలు, సూచనలు ఇక్కడ చేర్చండి. అవసరమైతే JSON బ్యాకప్ కూడా తీసుకోవచ్చు.</p>
+            <label for="tCat">విభాగం / టాగ్</label>
+            <input type="text" id="tCat" value="General AI" placeholder="ఉదా: Rules, Business, Telugu Tips">
+            <label for="tQ">ప్రశ్న / టాపిక్</label>
+            <input type="text" id="tQ" placeholder="ప్రశ్న లేదా కీలక పదం రాయండి...">
+            <label for="tA">సరైన సమాధానం</label>
+            <textarea id="tA" rows="3" placeholder="సరైన సమాధానం రాయండి..."></textarea>
+            <div class="actions">
+                <button class="btn btn-teal" id="addTrainBtn">➕ Train లో సేవ్ చేయి</button>
+                <button class="btn btn-gray" id="exportBtn">📤 Backup JSON</button>
+                <button class="btn btn-red" id="lockFromTrainBtn">🔒 లాక్ చేయి</button>
+            </div>
+        </div>
+        <div class="panel">
+            <h3>📚 ట్రైన్ చేసిన డేటా (<span id="kbCountLabel">0</span>)</h3>
+            <div id="trainList"></div>
+        </div>
+    </div>
 
-        let selectedCategory = 'general';
-        let uploadedPhotoBase64 = null;
-        let uploadedPhotoMime = null;
-        let uploadedPhotoName = '';
-        let samplePhotoActive = false;
-        let currentSampleKey = 'medicine';
+    <!-- 3. IMPROVE IT (LOCKED BY PIN) -->
+    <div id="improvePane" class="pane">
+        <div class="panel">
+            <h3>🔐 Improve it — సమాధానాలు మెరుగుపరచండి (మీకు మాత్రమే)</h3>
+            <p class="hint">"👎 మెరుగుపరచాలి" నొక్కిన ప్రశ్నలు ఇక్కడ ఉంటాయి. సరిదిద్ది సేవ్ చేస్తే Train లో చేరుతుంది.</p>
+            <div class="actions" style="margin-bottom:12px;">
+                <button class="btn btn-red" id="lockFromImproveBtn">🔒 లాక్ చేయి</button>
+            </div>
+            <div id="improveList"></div>
+        </div>
+    </div>
 
-        let recognition = null;
-        let isListening = false;
-        let isSpeaking = false;
-        let activeServiceFilter = 'all';
+    <!-- 4. AI CONNECTION SETTINGS (LOCKED BY PIN) -->
+    <div id="cfgPane" class="pane">
+        <div class="panel">
+            <h3>🔐 AI కనెక్షన్ సెట్టింగ్స్ (మీకు మాత్రమే)</h3>
+            <p class="hint">మీ Google Apps Script Web App URL లేదా Gemini API Key ఇక్కడ వేసి సేవ్ చేయండి.</p>
+            <label for="aiEngine">AI ఇంజిన్</label>
+            <select id="aiEngine">
+                <option value="apps_script">Google Apps Script Web App URL</option>
+                <option value="gemini">Google Gemini API (Direct Key)</option>
+                <option value="custom_openai">OpenAI / Compatible Endpoint URL</option>
+            </select>
+            <label for="aiEndpoint">Endpoint / Apps Script URL</label>
+            <input type="text" id="aiEndpoint" placeholder="https://script.google.com/macros/s/.../exec">
+            <label for="aiSecretKey">API Key (అవసరమైతే)</label>
+            <input type="password" id="aiSecretKey" placeholder="API Key...">
+            <label for="aiSystemRule">సిస్టమ్ రూల్</label>
+            <input type="text" id="aiSystemRule" value="సరళమైన తెలుగులో స్పష్టంగా సహాయకరంగా సమాధానం ఇవ్వు.">
+            <div class="actions">
+                <button class="btn btn-blue" id="saveCfgBtn">💾 సెట్టింగ్స్ సేవ్ చేయి</button>
+                <button class="btn btn-red" id="lockCfgBtn">🔒 లాక్ చేయి</button>
+            </div>
+            <div class="status-msg" id="cfgStatus"></div>
+        </div>
+    </div>
+</div>
 
-        // Category metadata in Telugu
-        const CATEGORIES = {
-            general: {
-                label: 'సాధారణ సహాయం',
-                promptHint: 'చిన్నపిల్లల నుండి పెద్దల వరకు అందరికీ సులభంగా అర్థమయ్యేలా సరళమైన తెలుగులో సమాధానం ఇవ్వండి.'
-            },
-            study: {
-                label: 'విద్య & చదువు',
-                promptHint: 'విద్యార్థులకు పాఠాలు, గణితం లేదా సైన్స్ భావనలను ఉదాహరణలతో సులభమైన తెలుగులో వివరించండి.'
-            },
-            health: {
-                label: 'పెద్దల ఆరోగ్యం',
-                promptHint: 'పెద్దవారి ఆరోగ్యం, దినచర్య మరియు జాగ్రత్తలపై ఉపయోగకరమైన సూచనలు ఇవ్వండి (ఇది వైద్య సలహాకు ప్రత్యామ్నాయం కాదని కూడా చెప్పండి).'
-            },
-            recipes: {
-                label: 'ఇంటి వంటకాలు',
-                promptHint: 'ఇంట్లో సులభంగా లభించే పదార్థాలతో రుచికరమైన మరియు ఆరోగ్యకరమైన వంట విధానాన్ని తెలుగులో చెప్పండి.'
-            },
-            business: {
-                label: 'వ్యాపార సలహాలు',
-                promptHint: 'తక్కువ పెట్టుబడితో ప్రారంభించగలిగే వ్యాపార ఆలోచనలు, కస్టమర్ సేవ మరియు వృద్ధి చిట్కాలను తెలుగులో ఇవ్వండి.'
-            },
-            local: {
-                label: 'స్థానిక షాపులు & సేవలు',
-                promptHint: 'స్థానిక షాపులు మరియు సేవల గురించి సహాయకరమైన సమాచారం అందించి, కింద ఉన్న స్థానిక డైరెక్టరీని ఉపయోగించమని సూచించండి.'
+<footer>© 2026 సహాయ్ AI • Train it • Serve it • Improve it</footer>
+
+<script>
+(function () {
+    // మీకు నచ్చిన రహస్య PIN ఇక్కడ పెట్టుకోండి
+    const ADMIN_PIN = "4321";
+
+    const K_TRAIN = "sahaya_ai_train_v1";
+    const K_LOGS = "sahaya_ai_logs_v1";
+    const K_CFG = "sahaya_ai_cfg_v1";
+    let latestQA = { q: "", a: "" };
+    let adminUnlocked = false;
+
+    function getTrain() { try { return JSON.parse(localStorage.getItem(K_TRAIN) || "[]"); } catch (e) { return []; } }
+    function setTrain(arr) { localStorage.setItem(K_TRAIN, JSON.stringify(arr)); }
+    function getLogs() { try { return JSON.parse(localStorage.getItem(K_LOGS) || "[]"); } catch (e) { return []; } }
+    function setLogs(arr) { localStorage.setItem(K_LOGS, JSON.stringify(arr)); }
+    function getCfg() { try { return JSON.parse(localStorage.getItem(K_CFG) || "{}") || {}; } catch (e) { return {}; } }
+    function setCfg(obj) { localStorage.setItem(K_CFG, JSON.stringify(obj)); }
+
+    function ensureAdminAccess(targetPaneId, targetPillId) {
+        if (!adminUnlocked) {
+            const entered = prompt("అడ్మిన్ (Train / Improve / Settings) ఓపెన్ చేయడానికి మీ PIN ఎంటర్ చేయండి:");
+            if (entered === null) return;
+            if (entered.trim() !== ADMIN_PIN) {
+                alert("తప్పు PIN! యాక్సెస్ నిరాకరించబడింది.");
+                return;
             }
-        };
+            adminUnlocked = true;
+        }
+        activatePane(targetPaneId, targetPillId);
+    }
 
-        // Sample photos generated as crisp SVG data URIs so they work offline/online without external breakage
-        const SAMPLE_PHOTOS = {
-            medicine: {
-                title: 'నమూనా ఫోటో: మందుల స్ట్రిప్ (Dolo / Paracetamol ప్యాకెట్ నమూనా)',
-                caption: 'జ్వరం మరియు శరీర నొప్పులకు వాడే సాధారణ టాబ్లెట్ స్ట్రిప్ నమూనా చిత్రం.',
-                mimeType: 'image/svg+xml',
-                dataUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" width="420" height="240" viewBox="0 0 420 240">
-                        <rect width="420" height="240" rx="18" fill="#eff6ff"/>
-                        <rect x="35" y="40" width="350" height="160" rx="14" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
-                        <rect x="35" y="40" width="350" height="42" rx="12" fill="#2563eb"/>
-                        <text x="210" y="67" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">MEDICINE STRIP SAMPLE (500mg)</text>
-                        <g fill="#dbeafe" stroke="#3b82f6" stroke-width="2">
-                            <ellipse cx="95" cy="135" rx="34" ry="22"/>
-                            <ellipse cx="170" cy="135" rx="34" ry="22"/>
-                            <ellipse cx="245" cy="135" rx="34" ry="22"/>
-                            <ellipse cx="320" cy="135" rx="34" ry="22"/>
-                        </g>
-                        <text x="210" y="185" font-family="sans-serif" font-size="13" fill="#334155" text-anchor="middle">Expiry &amp; Dosage Info • Consult Doctor/Pharmacist</text>
-                    </svg>
-                `),
-                demoAnalysis: `<b>💊 మందుల స్ట్రిప్ ఫోటో విశ్లేషణ (డెమో):</b><br>
-                • <b>గమనిక:</b> ఫోటోలోని లేబుల్, మోతాదు (mg) మరియు ఎక్స్‌పైరీ తేదీని స్పష్టంగా పరిశీలించడం చాలా ముఖ్యం.<br>
-                • <b>ముఖ్య జాగ్రత్తలు:</b> వైద్యుని లేదా ఫార్మసిస్ట్ సూచన మేరకు మాత్రమే మందులు తీసుకోవాలి. ఖాళీ కడుపుతో వేసుకోవాలా లేదా భోజనం తర్వాత వేసుకోవాలా అనేది నిర్ధారించుకోవాలి.<br>
-                • <b>అలర్జీ/సైడ్ ఎఫెక్ట్స్:</b> మందు వేసుకున్న తర్వాత ఏదైనా అసౌకర్యం లేదా అలర్జీ కనిపిస్తే వెంటనే డాక్టర్‌ను సంప్రదించండి.`
-            },
-            textbook: {
-                title: 'నమూనా ఫోటో: పాఠ్యపుస్తక పేజీ (సౌరశక్తి / శక్తి మార్పిడి పాఠం)',
-                caption: 'విద్యార్థుల పాఠ్యపుస్తకంలోని శక్తి మరియు పర్యావరణ అంశానికి సంబంధించిన నమూనా పేజీ.',
-                mimeType: 'image/svg+xml',
-                dataUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" width="420" height="240" viewBox="0 0 420 240">
-                        <rect width="420" height="240" rx="18" fill="#fefce8"/>
-                        <rect x="30" y="28" width="360" height="184" rx="12" fill="#ffffff" stroke="#fde047" stroke-width="3"/>
-                        <text x="55" y="62" font-family="sans-serif" font-size="18" font-weight="bold" fill="#854d0e">Chapter: Solar &amp; Renewable Energy</text>
-                        <line x1="55" y1="76" x2="365" y2="76" stroke="#fef08a" stroke-width="2"/>
-                        <circle cx="105" cy="132" r="28" fill="#facc15"/>
-                        <rect x="165" y="102" width="190" height="12" rx="6" fill="#cbd5e1"/>
-                        <rect x="165" y="124" width="165" height="12" rx="6" fill="#e2e8f0"/>
-                        <rect x="165" y="146" width="180" height="12" rx="6" fill="#e2e8f0"/>
-                        <text x="210" y="192" font-family="sans-serif" font-size="13" fill="#475569" text-anchor="middle">Easy Concept Explanation &amp; Practice Questions</text>
-                    </svg>
-                `),
-                demoAnalysis: `<b>📚 పాఠ్యపుస్తక పేజీ విశ్లేషణ (డెమో):</b><br>
-                • <b>సులభమైన అర్థం:</b> సూర్యుని నుండి వచ్చే కాంతి మరియు వేడిని ఉపయోగించి విద్యుత్ లేదా ఇతర శక్తిగా మార్చడమే సౌరశక్తి (Solar Energy).<br>
-                • <b>ఉదాహరణ:</b> ఇంటి పైకప్పుపై అమర్చే సోలార్ ప్యానెల్స్ పగటిపూట సూర్యరశ్మిని గ్రహించి కరెంట్ ఉత్పత్తి చేస్తాయి.<br>
-                • <b>పరీక్షా చిట్కా:</b> నిర్వచనం (Definition) + ఒక నిత్యజీవిత ఉదాహరణ రాస్తే పూర్తి మార్కులు పొందవచ్చు.`
-            },
-            dish: {
-                title: 'నమూనా ఫోటో: ఇంటి వంటకం (పప్పు &amp; కూరగాయల భోజనం)',
-                caption: 'పోషకాలు నిండిన సంప్రదాయ ఇంటి భోజన ప్లేట్ నమూనా.',
-                mimeType: 'image/svg+xml',
-                dataUrl: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" width="420" height="240" viewBox="0 0 420 240">
-                        <rect width="420" height="240" rx="18" fill="#fff7ed"/>
-                        <circle cx="210" cy="120" r="82" fill="#ffffff" stroke="#fdba74" stroke-width="4"/>
-                        <circle cx="210" cy="120" r="64" fill="#ffedd5"/>
-                        <circle cx="185" cy="105" r="18" fill="#f97316"/>
-                        <circle cx="235" cy="108" r="16" fill="#22c55e"/>
-                        <circle cx="210" cy="145" r="20" fill="#eab308"/>
-                        <text x="210" y="224" font-family="sans-serif" font-size="13" font-weight="bold" fill="#9a3412" text-anchor="middle">Balanced Home Meal Sample</text>
-                    </svg>
-                `),
-                demoAnalysis: `<b>🍲 ఇంటి వంటకం విశ్లేషణ (డెమో):</b><br>
-                • <b>పోషక విలువలు:</b> పప్పుల నుండి ప్రోటీన్, కూరగాయల నుండి ఫైబర్ మరియు విటమిన్లు లభిస్తాయి.<br>
-                • <b>రుచి &amp; ఆరోగ్య చిట్కా:</b> నూనె మోతాదు తక్కువగా ఉంచి, పోపులో జీలకర్ర, ఆవాలు, కరివేపాకు, వెల్లుల్లి వాడితే రుచితో పాటు జీర్ణశక్తి కూడా బాగుంటుంది.`
-            }
-        };
+    function lockAdmin() {
+        adminUnlocked = false;
+        document.getElementById("cfgStatus").innerText = "🔒 అడ్మిన్ విభాగాలు లాక్ అయ్యాయి.";
+        activatePane("servePane", "pillServe");
+    }
 
-        // 4. Local Shops & Services Directory Data (No hardcoded personal phone numbers or payment app redirects)
-        const LOCAL_SERVICES = [
-            {
-                id: 'mobile',
-                categoryKey: 'mobile',
-                categoryLabel: 'మొబైల్',
-                icon: '📱',
-                name: 'శ్రీ సాయి మొబైల్ కేర్ & యాక్సెసరీస్',
-                area: 'ప్రధాన బజారు, స్థానిక మార్కెట్ రోడ్',
-                hours: 'ఉదయం 9:30 – రాత్రి 9:30',
-                services: 'స్క్రీన్ రీప్లేస్‌మెంట్, బ్యాటరీ మార్పు, చార్జర్లు, డేటా సహాయం'
-            },
-            {
-                id: 'clothing',
-                categoryKey: 'clothing',
-                categoryLabel: 'వస్త్రాలు',
-                icon: '👗',
-                name: 'అన్నపూర్ణ వస్త్రాలయం & రెడీమేడ్స్',
-                area: 'గాంధీ చౌక్, మెయిన్ రోడ్',
-                hours: 'ఉదయం 10:00 – రాత్రి 9:30',
-                services: 'పట్టు & కాటన్ చీరలు, పిల్లల దుస్తులు, పండుగ కలెక్షన్'
-            },
-            {
-                id: 'tyre',
-                categoryKey: 'tyre',
-                categoryLabel: 'టైర్ & అలైన్‌మెంట్',
-                icon: '🛞',
-                name: 'విజయ్ టైర్ వర్క్స్ & వీల్ అలైన్‌మెంట్',
-                area: 'హైవే సర్వీస్ రోడ్, బైపాస్ జంక్షన్',
-                hours: 'ఉదయం 8:00 – రాత్రి 8:30',
-                services: 'పంక్చర్ రిపేర్, ట్యూబ్‌లెస్ టైర్లు, వీల్ బ్యాలెన్సింగ్ & అలైన్‌మెంట్'
-            },
-            {
-                id: 'battery',
-                categoryKey: 'battery',
-                categoryLabel: 'బ్యాటరీ',
-                icon: '🔋',
-                name: 'ప్రగతి బ్యాటరీ & ఇన్వర్టర్ పాయింట్',
-                area: 'విద్యుత్ నగర్ మెయిన్ రోడ్',
-                hours: 'ఉదయం 9:00 – రాత్రి 8:30',
-                services: 'కార్ & బైక్ బ్యాటరీలు, హోమ్ ఇన్వర్టర్ చెకప్, టెర్మినల్ సర్వీస్'
-            },
-            {
-                id: 'dental',
-                categoryKey: 'dental',
-                categoryLabel: 'దంత వైద్యం',
-                icon: '🦷',
-                name: 'స్మైల్ కేర్ డెంటల్ క్లినిక్',
-                area: 'ఆసుపత్రి వీధి, మొదటి అంతస్తు',
-                hours: 'ఉదయం 10:00 – మధ్యాహ్నం 2:00, సా. 5:00 – రా. 8:30',
-                services: 'దంత శుభ్రత (క్లీనింగ్), పుచ్చిపోయిన పంటి చికిత్స, దంత ఆరోగ్య తనిఖీ'
-            },
-            {
-                id: 'optical',
-                categoryKey: 'optical',
-                categoryLabel: 'కళ్లద్దాలు (Optical)',
-                icon: '👓',
-                name: 'దృష్టి ఆప్టికల్స్ & ఐ కేర్',
-                area: 'క్లాక్ టవర్ సమీపంలో',
-                hours: 'ఉదయం 10:00 – రాత్రి 9:00',
-                services: 'కంటి అద్దాల ఫ్రేములు, రీడింగ్ & యాంటీ-గ్లేర్ లెన్సులు, అద్దాల ఫిట్టింగ్'
-            },
-            {
-                id: 'bakery',
-                categoryKey: 'bakery',
-                categoryLabel: 'బేకరీ',
-                icon: '🥐',
-                name: 'రుచి బేకరీ & స్వీట్ హౌస్',
-                area: 'బస్టాండ్ రోడ్, సెంటర్ పాయింట్',
-                hours: 'ఉదయం 7:30 – రాత్రి 10:00',
-                services: 'ఫ్రెష్ బ్రెడ్, బిస్కెట్లు, పుట్టినరోజు కేకులు, సాయంత్రం స్నాక్స్'
-            },
-            {
-                id: 'auto',
-                categoryKey: 'auto',
-                categoryLabel: 'ఆటో రిపేర్',
-                icon: '🔧',
-                name: 'మారుతి టూ-వీలర్ & ఆటో మెకానిక్ షెడ్',
-                area: 'ఇండస్ట్రియల్ / వర్క్‌షాప్ లైన్',
-                hours: 'ఉదయం 8:30 – రాత్రి 8:00',
-                services: 'ఇంజిన్ ఆయిల్ మార్పు, బ్రేక్ & క్లచ్ సర్వీస్, జనరల్ ట్యూనింగ్'
-            }
-        ];
+    function activatePane(paneId, pillId) {
+        document.querySelectorAll(".pane").forEach(function (p) { p.classList.remove("active"); });
+        document.querySelectorAll(".nav-pill").forEach(function (b) { b.classList.remove("active"); });
+        const target = document.getElementById(paneId);
+        if (target) target.classList.add("active");
+        const pill = document.getElementById(pillId);
+        if (pill) pill.classList.add("active");
+        if (paneId === "cfgPane") loadCfgInputs();
+        refreshUI();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
-        // =====================================================================
-        // 2. INITIALIZATION
-        // =====================================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                updateModeBadge();
-                selectCategory('general', false);
-                renderServiceFilterPills();
-                renderDirectory();
-            } catch (err) {
-                showToast('యాప్ లోడ్ చేయడంలో చిన్న సమస్య వచ్చింది.');
-            }
+    function handleNavClick(paneId, pillId) {
+        if (paneId === "servePane") {
+            activatePane(paneId, pillId);
+        } else {
+            ensureAdminAccess(paneId, pillId);
+        }
+    }
+
+    function loadCfgInputs() {
+        const cfg = getCfg();
+        document.getElementById("aiEngine").value = cfg.engine || "apps_script";
+        document.getElementById("aiEndpoint").value = cfg.endpoint || "";
+        document.getElementById("aiSecretKey").value = cfg.key || "";
+        document.getElementById("aiSystemRule").value = cfg.rule || "సరళమైన తెలుగులో స్పష్టంగా సహాయకరంగా సమాధానం ఇవ్వు.";
+    }
+
+    function saveCfg() {
+        if (!adminUnlocked) { alert("ముందుగా PIN తో అన్‌లాక్ చేయండి!"); return; }
+        setCfg({
+            engine: document.getElementById("aiEngine").value,
+            endpoint: document.getElementById("aiEndpoint").value.trim(),
+            key: document.getElementById("aiSecretKey").value.trim(),
+            rule: document.getElementById("aiSystemRule").value.trim()
+        });
+        document.getElementById("cfgStatus").innerText = "✅ సెట్టింగ్స్ సేవ్ అయ్యాయి!";
+        alert("సెట్టింగ్స్ సేవ్ అయ్యాయి!");
+    }
+
+    function matchTrained(q) {
+        const query = q.toLowerCase().trim();
+        return getTrain().find(function (it) {
+            const kq = (it.q || "").toLowerCase();
+            return kq.includes(query) || query.includes(kq);
+        });
+    }
+
+    async function callConnectedAI(promptText) {
+        const cfg = getCfg();
+        const rule = cfg.rule || "సరళమైన తెలుగులో సహాయకరంగా సమాధానం ఇవ్వు.";
+        const trainedContext = getTrain().slice(0, 10).map(function (it) { return "Q: " + it.q + " | A: " + it.a; }).join("\n");
+        const fullPrompt = trainedContext ? (rule + "\n\nTrained Knowledge:\n" + trainedContext + "\n\nQuestion: " + promptText) : (rule + "\n\nQuestion: " + promptText);
+
+        if (cfg.engine === "gemini" && cfg.key) {
+            const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(cfg.key), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+            });
+            const data = await res.json();
+            return (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) || "సమాధానం రాలేదు.";
+        }
+
+        if (cfg.engine === "custom_openai" && cfg.endpoint) {
+            const headers = { "Content-Type": "application/json" };
+            if (cfg.key) headers["Authorization"] = "Bearer " + cfg.key;
+            const res = await fetch(cfg.endpoint, {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "system", content: rule }, { role: "user", content: fullPrompt }] })
+            });
+            const data = await res.json();
+            return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || data.reply || "సమాధానం రాలేదు.";
+        }
+
+        if (cfg.endpoint) {
+            const res = await fetch(cfg.endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ prompt: fullPrompt })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            return data.reply || "సమాధానం రాలేదు.";
+        }
+
+        return 'మీ ప్రశ్న: "' + promptText + '"\n\nఇది లోకల్ డెమో సమాధానం. లైవ్ AI కోసం అడ్మిన్ సెట్టింగ్స్‌లో URL/Key వేయండి లేదా "Train it" లో సమాధానం చేర్చండి.';
+    }
+
+    async function runServe() {
+        const q = document.getElementById("qInput").value.trim();
+        if (!q) { alert("ప్రశ్న రాయండి!"); return; }
+        const box = document.getElementById("resultBox");
+        const badge = document.getElementById("sourceBadge");
+        const out = document.getElementById("resultText");
+        box.style.display = "block";
+        out.innerHTML = "⏳ సిద్ధమవుతోంది...";
+
+        const hit = matchTrained(q);
+        if (hit) {
+            badge.className = "badge trained";
+            badge.innerText = "🧠 Trained Data";
+            out.innerHTML = hit.a.replace(/\n/g, "<br>");
+            latestQA = { q: q, a: hit.a };
+            return;
+        }
+
+        try {
+            const ans = await callConnectedAI(q);
+            badge.className = "badge";
+            badge.innerText = "⚡ Connected AI / Demo";
+            out.innerHTML = ans.replace(/\n/g, "<br>");
+            latestQA = { q: q, a: ans };
+        } catch (err) {
+            badge.className = "badge";
+            badge.innerText = "⚠️ Check Connection";
+            const msg = "కనెక్షన్ తనిఖీ చేయండి లేదా 'Train it' లో సమాధానం చేర్చండి.";
+            out.innerHTML = msg;
+            latestQA = { q: q, a: msg };
+        }
+    }
+
+    function markFeedback(approved) {
+        if (!latestQA.q) return;
+        const logs = getLogs();
+        logs.unshift({ id: Date.now(), q: latestQA.q, a: latestQA.a, approved: approved });
+        setLogs(logs);
+        refreshUI();
+        alert(approved ? "👍 Approved!" : "👎 'Improve it' లో చేరింది.");
+    }
+
+    function saveCurrentToTrain() {
+        if (!latestQA.q || !latestQA.a) return;
+        const items = getTrain();
+        items.unshift({ id: Date.now(), cat: "Served -> Trained", q: latestQA.q, a: latestQA.a });
+        setTrain(items);
+        refreshUI();
+        alert("Train లో సేవ్ అయింది!");
+    }
+
+    function addTrain() {
+        if (!adminUnlocked) { alert("ముందుగా PIN తో అన్‌లాక్ చేయండి!"); return; }
+        const cat = document.getElementById("tCat").value.trim() || "General AI";
+        const q = document.getElementById("tQ").value.trim();
+        const a = document.getElementById("tA").value.trim();
+        if (!q || !a) { alert("ప్రశ్న మరియు సమాధానం రాయండి!"); return; }
+        const items = getTrain();
+        items.unshift({ id: Date.now(), cat: cat, q: q, a: a });
+        setTrain(items);
+        document.getElementById("tQ").value = "";
+        document.getElementById("tA").value = "";
+        refreshUI();
+        alert("సేవ్ అయింది!");
+    }
+
+    function removeTrain(id) {
+        if (!adminUnlocked) { alert("ముందుగా PIN తో అన్‌లాక్ చేయండి!"); return; }
+        setTrain(getTrain().filter(function (x) { return x.id !== id; }));
+        refreshUI();
+    }
+
+    function applyImprovement(logId) {
+        if (!adminUnlocked) { alert("ముందుగా PIN తో అన్‌లాక్ చేయండి!"); return; }
+        const el = document.getElementById("imp_" + logId);
+        const newAns = (el ? el.value : "").trim();
+        if (!newAns) { alert("మెరుగైన సమాధానం రాయండి!"); return; }
+        const logs = getLogs();
+        const item = logs.find(function (x) { return x.id === logId; });
+        if (!item) return;
+        const items = getTrain();
+        items.unshift({ id: Date.now(), cat: "Improved", q: item.q, a: newAns });
+        setTrain(items);
+        item.approved = true;
+        item.a = newAns;
+        setLogs(logs);
+        refreshUI();
+        alert("మెరుగుపరిచి Train లో చేర్చాం!");
+    }
+
+    function exportTrainData() {
+        if (!adminUnlocked) { alert("ముందుగా PIN తో అన్‌లాక్ చేయండి!"); return; }
+        const blob = new Blob([JSON.stringify(getTrain(), null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "sahaya-ai-training-data.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function readOut() {
+        const txt = document.getElementById("resultText").innerText.trim();
+        if (!txt || !("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const sp = new SpeechSynthesisUtterance(txt);
+        sp.lang = "te-IN";
+        window.speechSynthesis.speak(sp);
+    }
+
+    function refreshUI() {
+        const items = getTrain();
+        const logs = getLogs();
+        document.getElementById("mTrained").innerText = items.length;
+        document.getElementById("mGood").innerText = logs.filter(function (x) { return x.approved; }).length;
+        document.getElementById("mImprove").innerText = logs.filter(function (x) { return !x.approved; }).length;
+        document.getElementById("kbCountLabel").innerText = items.length;
+
+        document.getElementById("trainList").innerHTML = items.length ? items.map(function (it) {
+            return '<div class="item-card"><div class="item-q">Q: ' + it.q + '</div><div class="item-a">A: ' + it.a + '</div><div class="item-foot"><span>Tag: ' + it.cat + '</span><button class="btn btn-red del-train-btn" data-id="' + it.id + '" style="flex:0; min-width:auto; padding:6px 10px; font-size:0.78rem;">తొలగించు</button></div></div>';
+        }).join("") : "<p class='hint'>ఇంకా డేటా లేదు.</p>";
+
+        document.querySelectorAll(".del-train-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                removeTrain(Number(btn.getAttribute("data-id")));
+            });
         });
 
-        function showToast(message) {
-            const toast = document.getElementById('statusToast');
-            const toastText = document.getElementById('statusToastText');
-            toastText.textContent = message;
-            toast.classList.remove('hidden');
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => {
-                hideToast();
-            }, 4000);
-        }
+        const badItems = logs.filter(function (x) { return !x.approved; });
+        document.getElementById("improveList").innerHTML = badItems.length ? badItems.map(function (it) {
+            return '<div class="item-card"><div class="item-q">Q: ' + it.q + '</div><div class="item-a">Old A: ' + it.a + '</div><textarea id="imp_' + it.id + '" rows="2" placeholder="మెరుగైన సమాధానం రాయండి..."></textarea><button class="btn btn-green save-imp-btn" data-id="' + it.id + '">✅ Improve చేసి Train లో చేర్చు</button></div>';
+        }).join("") : "<p class='hint'>ప్రస్తుతం మెరుగుపరచాల్సినవి లేవు.</p>";
 
-        function hideToast() {
-            document.getElementById('statusToast').classList.add('hidden');
-        }
-
-        function getSavedApiKey() {
-            try {
-                return (localStorage.getItem(STORAGE_KEY_API) || '').trim();
-            } catch (_) {
-                return '';
-            }
-        }
-
-        function updateModeBadge() {
-            const badge = document.getElementById('modeBadge');
-            const hasKey = Boolean(getSavedApiKey());
-            badge.textContent = hasKey ? 'లైవ్ Gemini AI' : 'డెమో మోడ్';
-            badge.className = hasKey
-                ? 'hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-400/25 text-emerald-100 border border-emerald-300/40'
-                : 'hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/15 text-blue-50 border border-white/20';
-        }
-
-        // =====================================================================
-        // 3. SETTINGS & API KEY MODAL
-        // =====================================================================
-        function openSettingsModal() {
-            document.getElementById('apiKeyInput').value = getSavedApiKey();
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        function saveApiKey() {
-            const keyVal = document.getElementById('apiKeyInput').value.trim();
-            try {
-                if (keyVal) {
-                    localStorage.setItem(STORAGE_KEY_API, keyVal);
-                    showToast('Gemini API కీ సేవ్ చేయబడింది. ఇప్పుడు లైవ్ AI పనిచేస్తుంది!');
-                } else {
-                    localStorage.removeItem(STORAGE_KEY_API);
-                    showToast('కీ ఖాళీగా ఉంది. డెమో మోడ్ కొనసాగుతుంది.');
-                }
-            } catch (_) {
-                showToast('బ్రౌజర్ స్టోరేజ్ అనుమతి లేదు.');
-            }
-            updateModeBadge();
-            closeSettingsModal();
-        }
-
-        function clearApiKey() {
-            document.getElementById('apiKeyInput').value = '';
-            try {
-                localStorage.removeItem(STORAGE_KEY_API);
-            } catch (_) {}
-            updateModeBadge();
-            showToast('API కీ తొలగించబడింది. డెమో మోడ్ యాక్టివ్ అయింది.');
-        }
-
-        // =====================================================================
-        // 4. CATEGORY SELECTION
-        // =====================================================================
-        function selectCategory(catKey, scrollToDirectory = true) {
-            selectedCategory = CATEGORIES[catKey] ? catKey : 'general';
-            const info = CATEGORIES[selectedCategory];
-
-            document.getElementById('activeCategoryPill').textContent = info.label;
-
-            // Highlight active category card
-            document.querySelectorAll('.cat-card').forEach(btn => {
-                const isSelected = btn.getAttribute('data-cat') === selectedCategory;
-                btn.classList.toggle('border-blue-600', isSelected);
-                btn.classList.toggle('bg-blue-50/60', isSelected);
-                btn.classList.toggle('ring-2', isSelected);
-                btn.classList.toggle('ring-blue-200', isSelected);
-                btn.classList.toggle('border-slate-200', !isSelected);
+        document.querySelectorAll(".save-imp-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                applyImprovement(Number(btn.getAttribute("data-id")));
             });
-
-            if (selectedCategory === 'local' && scrollToDirectory) {
-                document.getElementById('localDirectorySection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-
-        // =====================================================================
-        // 5. CAMERA / PHOTO UPLOAD & SAMPLE PHOTO TOGGLE
-        // =====================================================================
-        function handleFileSelect(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
-
-            if (!file.type.startsWith('image/')) {
-                showToast('దయచేసి చెల్లుబాటు అయ్యే ఫోటో (Image) ఫైల్ ఎంచుకోండి.');
-                return;
-            }
-
-            // Turn off sample photo mode if user picks a real file
-            samplePhotoActive = false;
-            document.getElementById('samplePhotoToggle').checked = false;
-            document.getElementById('sampleSelectorWrap').classList.add('hidden');
-
-            const reader = new FileReader();
-            reader.onload = () => {
-                const resultStr = String(reader.result || '');
-                const commaIdx = resultStr.indexOf(',');
-                if (commaIdx > -1) {
-                    uploadedPhotoBase64 = resultStr.slice(commaIdx + 1);
-                    uploadedPhotoMime = file.type || 'image/jpeg';
-                    uploadedPhotoName = file.name || 'ఫోటో';
-
-                    const previewImg = document.getElementById('photoPreviewImg');
-                    previewImg.src = resultStr;
-                    document.getElementById('photoSourceLabel').textContent = `అప్‌లోడ్ చేసిన ఫోటో: ${uploadedPhotoName}`;
-                    document.getElementById('photoCaptionText').textContent = 'ఈ ఫోటో గురించి మీ ప్రశ్నను పైన రాసి సమాధానం పొందండి.';
-                    document.getElementById('photoPreviewContainer').classList.remove('hidden');
-                    document.getElementById('clearPhotoBtn').classList.remove('hidden');
-                    showToast('ఫోటో సిద్ధంగా ఉంది! మీ ప్రశ్న అడగండి.');
-                }
-            };
-            reader.onerror = () => {
-                showToast('ఫోటో చదవడంలో సమస్య వచ్చింది.');
-            };
-            reader.readAsDataURL(file);
-
-            // Reset input value so re-selecting same file triggers change event
-            event.target.value = '';
-        }
-
-        function toggleSamplePhoto(checked) {
-            samplePhotoActive = Boolean(checked);
-            const selectorWrap = document.getElementById('sampleSelectorWrap');
-
-            if (samplePhotoActive) {
-                // Clear manual file upload if switching to sample photo
-                uploadedPhotoBase64 = null;
-                uploadedPhotoMime = null;
-                uploadedPhotoName = '';
-                selectorWrap.classList.remove('hidden');
-                chooseSample(currentSampleKey);
-                document.getElementById('clearPhotoBtn').classList.remove('hidden');
-            } else {
-                selectorWrap.classList.add('hidden');
-                if (!uploadedPhotoBase64) {
-                    document.getElementById('photoPreviewContainer').classList.add('hidden');
-                    document.getElementById('clearPhotoBtn').classList.add('hidden');
-                }
-            }
-        }
-
-        function chooseSample(sampleKey) {
-            currentSampleKey = SAMPLE_PHOTOS[sampleKey] ? sampleKey : 'medicine';
-            const sample = SAMPLE_PHOTOS[currentSampleKey];
-
-            document.querySelectorAll('.sample-preset-btn').forEach(btn => {
-                const active = btn.getAttribute('data-sample') === currentSampleKey;
-                btn.className = active
-                    ? 'sample-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white cursor-pointer transition'
-                    : 'sample-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 cursor-pointer transition';
-            });
-
-            document.getElementById('photoPreviewImg').src = sample.dataUrl;
-            document.getElementById('photoSourceLabel').textContent = sample.title;
-            document.getElementById('photoCaptionText').textContent = sample.caption;
-            document.getElementById('photoPreviewContainer').classList.remove('hidden');
-        }
-
-        function clearPhoto() {
-            uploadedPhotoBase64 = null;
-            uploadedPhotoMime = null;
-            uploadedPhotoName = '';
-            samplePhotoActive = false;
-
-            document.getElementById('samplePhotoToggle').checked = false;
-            document.getElementById('sampleSelectorWrap').classList.add('hidden');
-            document.getElementById('photoPreviewContainer').classList.add('hidden');
-            document.getElementById('clearPhotoBtn').classList.add('hidden');
-            document.getElementById('photoPreviewImg').src = '';
-            showToast('ఫోటో తొలగించబడింది.');
-        }
-
-        // =====================================================================
-        // 6. TELUGU VOICE INPUT (Web Speech API te-IN) & READ ALOUD
-        // =====================================================================
-        function toggleVoiceInput() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                showToast('మీ బ్రౌజర్‌లో వాయిస్ ఇన్‌పుట్ సపోర్ట్ లేదు. దయచేసి Chrome వాడండి లేదా టైప్ చేయండి.');
-                return;
-            }
-
-            if (isListening && recognition) {
-                recognition.stop();
-                return;
-            }
-
-            try {
-                recognition = new SpeechRecognition();
-                recognition.lang = 'te-IN';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
-                recognition.onstart = () => {
-                    isListening = true;
-                    const micBtn = document.getElementById('micBtn');
-                    micBtn.classList.add('listening-pulse', 'bg-emerald-600', 'hover:bg-emerald-700');
-                    micBtn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
-                    document.getElementById('micIcon').textContent = '🔴';
-                    document.getElementById('micLabel').textContent = 'తెలుగులో వింటున్నాను... (ఆపడానికి నొక్కండి)';
-                };
-
-                recognition.onresult = (event) => {
-                    const transcript = event.results?.[0]?.[0]?.transcript || '';
-                    if (transcript) {
-                        const inputEl = document.getElementById('questionInput');
-                        inputEl.value = inputEl.value.trim()
-                            ? `${inputEl.value.trim()} ${transcript}`
-                            : transcript;
-                        showToast('మీ మాటలు తెలుగులో నమోదయ్యాయి!');
-                    }
-                };
-
-                recognition.onerror = () => {
-                    showToast('వాయిస్ వినడంలో సమస్య వచ్చింది. మైక్ అనుమతి తనిఖీ చేయండి.');
-                };
-
-                recognition.onend = () => {
-                    isListening = false;
-                    const micBtn = document.getElementById('micBtn');
-                    micBtn.classList.remove('listening-pulse', 'bg-emerald-600', 'hover:bg-emerald-700');
-                    micBtn.classList.add('bg-rose-600', 'hover:bg-rose-700');
-                    document.getElementById('micIcon').textContent = '🎤';
-                    document.getElementById('micLabel').textContent = 'తెలుగులో మాట్లాడండి';
-                };
-
-                recognition.start();
-            } catch (_) {
-                isListening = false;
-                showToast('మైక్రోఫోన్ ప్రారంభించలేకపోయాము.');
-            }
-        }
-
-        function toggleReadAloud() {
-            if (!('speechSynthesis' in window)) {
-                showToast('మీ బ్రౌజర్ రీడ్-అలౌడ్ (Text-to-Speech) సపోర్ట్ చేయడం లేదు.');
-                return;
-            }
-
-            if (isSpeaking) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                updateReadAloudButton();
-                return;
-            }
-
-            const contentEl = document.getElementById('responseContent');
-            const plainText = (contentEl.innerText || '').trim();
-            if (!plainText) {
-                showToast('చదివి వినిపించడానికి సమాధానం లేదు.');
-                return;
-            }
-
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(plainText);
-            utterance.lang = 'te-IN';
-            utterance.rate = 0.96;
-
-            utterance.onstart = () => {
-                isSpeaking = true;
-                updateReadAloudButton();
-            };
-            utterance.onend = () => {
-                isSpeaking = false;
-                updateReadAloudButton();
-            };
-            utterance.onerror = () => {
-                isSpeaking = false;
-                updateReadAloudButton();
-                showToast('తెలుగు వాయిస్ ప్లే చేయడంలో సమస్య వచ్చింది.');
-            };
-
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function updateReadAloudButton() {
-            document.getElementById('readAloudIcon').textContent = isSpeaking ? '⏹️' : '🔊';
-            document.getElementById('readAloudLabel').textContent = isSpeaking ? 'ఆపండి (Stop)' : 'వినండి (Read Aloud)';
-        }
-
-        function copyAnswer() {
-            const text = (document.getElementById('responseContent').innerText || '').trim();
-            if (!text) return;
-
-            const tempTextarea = document.createElement('textarea');
-            tempTextarea.value = text;
-            document.body.appendChild(tempTextarea);
-            tempTextarea.select();
-            try {
-                document.execCommand('copy');
-                showToast('సమాధానం కాపీ చేయబడింది!');
-            } catch (_) {
-                showToast('కాపీ చేయడం సాధ్యపడలేదు.');
-            }
-            document.body.removeChild(tempTextarea);
-        }
-
-        // =====================================================================
-        // 7. GEMINI API INTEGRATION & RICH INTERACTIVE DEMO MODE
-        // =====================================================================
-        async function submitQuestion() {
-            const questionText = document.getElementById('questionInput').value.trim();
-            const hasPhoto = Boolean(uploadedPhotoBase64) || samplePhotoActive;
-
-            if (!questionText && !hasPhoto) {
-                showToast('దయచేసి మీ ప్రశ్న రాయండి/మాట్లాడండి లేదా ఫోటో ఎంచుకోండి.');
-                return;
-            }
-
-            const responseSection = document.getElementById('responseSection');
-            const responseContent = document.getElementById('responseContent');
-            const sourceTag = document.getElementById('responseSourceTag');
-            const askBtn = document.getElementById('askBtn');
-
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                updateReadAloudButton();
-            }
-
-            responseSection.classList.remove('hidden');
-            responseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            responseContent.innerHTML = `
-                <div class="flex items-center gap-3 text-slate-600 py-2">
-                    <span class="inline-block w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
-                    <span>సహాయ్ AI సమాధానం సిద్ధం చేస్తోంది...</span>
-                </div>
-            `;
-            askBtn.disabled = true;
-
-            const apiKey = getSavedApiKey();
-
-            if (apiKey) {
-                sourceTag.textContent = 'Gemini 2.5 Flash • లైవ్';
-                sourceTag.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
-                await runLiveGemini(apiKey, questionText);
-            } else {
-                sourceTag.textContent = 'ఇంటరాక్టివ్ డెమో మోడ్';
-                sourceTag.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800';
-                runInteractiveDemo(questionText);
-            }
-
-            askBtn.disabled = false;
-        }
-
-        async function runLiveGemini(apiKey, questionText) {
-            const responseContent = document.getElementById('responseContent');
-            const catInfo = CATEGORIES[selectedCategory] || CATEGORIES.general;
-
-            const promptParts = [];
-            const effectivePrompt = questionText || (
-                samplePhotoActive
-                    ? `ఈ నమూనా ఫోటో (${SAMPLE_PHOTOS[currentSampleKey].title}) లో ఏముందో, దాని ముఖ్య వివరాలను తెలుగులో సులభంగా వివరించండి.`
-                    : 'ఈ ఫోటోలో ఏముందో, దానికి సంబంధించిన ముఖ్యమైన సమాచారాన్ని తెలుగులో సులభంగా వివరించండి.'
-            );
-
-            promptParts.push({
-                text: `మీరు "సహాయ్ AI (Sahay AI)" అనే తెలుగు డిజిటల్ సహాయకుడిలా వ్యవహరించండి. విభాగం: ${catInfo.label}. ${catInfo.promptHint}\n\nప్రశ్న/సూచన: ${effectivePrompt}`
-            });
-
-            if (uploadedPhotoBase64 && uploadedPhotoMime) {
-                promptParts.push({
-                    inlineData: {
-                        mimeType: uploadedPhotoMime,
-                        data: uploadedPhotoBase64
-                    }
-                });
-            } else if (samplePhotoActive) {
-                // Convert SVG sample to base64 for Gemini multimodal request
-                const sample = SAMPLE_PHOTOS[currentSampleKey];
-                const rawSvg = decodeURIComponent(sample.dataUrl.split(',')[1] || '');
-                const b64Svg = btoa(unescape(encodeURIComponent(rawSvg)));
-                promptParts.push({
-                    inlineData: {
-                        mimeType: 'image/svg+xml',
-                        data: b64Svg
-                    }
-                });
-            }
-
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-            try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ role: 'user', parts: promptParts }]
-                    })
-                });
-
-                const data = await res.json();
-                if (!res.ok) {
-                    const errMsg = data?.error?.message || 'API అభ్యర్థన విఫలమైంది.';
-                    responseContent.innerHTML = `
-                        <p class="text-rose-700 font-semibold">⚠️ Gemini API లోపం:</p>
-                        <p class="text-slate-600 text-sm">${escapeHtml(errMsg)}</p>
-                        <p class="text-xs text-slate-500 mt-1">పైన ⚙️ సెట్టింగ్స్‌లో మీ API కీని తనిఖీ చేయండి.</p>
-                    `;
-                    return;
-                }
-
-                const replyText = data?.candidates?.[0]?.content?.parts
-                    ?.map(p => p.text || '')
-                    .join('\n')
-                    .trim();
-
-                if (!replyText) {
-                    responseContent.innerHTML = '<p class="text-slate-600">సమాధానం అందలేదు. దయచేసి మరో ప్రశ్నతో ప్రయత్నించండి.</p>';
-                    return;
-                }
-
-                responseContent.innerHTML = formatPlainTextToHtml(replyText);
-            } catch (_) {
-                responseContent.innerHTML = `
-                    <p class="text-rose-700 font-semibold">నెట్‌వర్క్ సమస్య ఏర్పడింది.</p>
-                    <p class="text-slate-600 text-sm">ఇంటర్నెట్ కనెక్షన్ తనిఖీ చేసి మళ్ళీ ప్రయత్నించండి లేదా ⚙️ సెట్టింగ్స్ ద్వారా డెమో మోడ్ వాడండి.</p>
-                `;
-            }
-        }
-
-        function runInteractiveDemo(questionText) {
-            const responseContent = document.getElementById('responseContent');
-            let htmlParts = [];
-
-            if (questionText) {
-                htmlParts.push(`<p><strong>మీ ప్రశ్న:</strong> "${escapeHtml(questionText)}"</p>`);
-            }
-
-            // If a photo or sample photo is active, include photo analysis
-            if (samplePhotoActive) {
-                const sample = SAMPLE_PHOTOS[currentSampleKey];
-                htmlParts.push(`<div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100">${sample.demoAnalysis}</div>`);
-            } else if (uploadedPhotoBase64) {
-                htmlParts.push(`
-                    <div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 space-y-1">
-                        <p class="font-bold text-blue-900">📷 అప్‌లోడ్ చేసిన ఫోటో (${escapeHtml(uploadedPhotoName)}) డెమో విశ్లేషణ:</p>
-                        <p class="text-sm text-slate-700">మీ ఫోటో యాప్‌లో విజయవంతంగా లోడ్ అయింది. ఫోటోలోని అక్షరాలు, లేబుల్ లేదా వస్తువును పూర్తి వివరాలతో విశ్లేషించడానికి పైన ⚙️ సెట్టింగ్స్‌లో మీ Gemini API కీని జత చేయండి.</p>
-                    </div>
-                `);
-            }
-
-            // Category-specific interactive demo guidance
-            if (selectedCategory === 'study') {
-                htmlParts.push(`
-                    <p><strong>📚 విద్య &amp; చదువు సహాయం:</strong></p>
-                    <ul class="list-disc pl-5 space-y-1 text-sm sm:text-base">
-                        <li>కష్టమైన అంశాన్ని చిన్న భాగాలుగా విడదీసి, నిత్యజీవిత ఉదాహరణతో చదివితే త్వరగా గుర్తుంటుంది.</li>
-                        <li>రోజుకు 20 నిమిషాలు రివిజన్ మరియు ముఖ్యమైన సూత్రాలు రాసి ప్రాక్టీస్ చేయడం చాలా మంచిది.</li>
-                    </ul>
-                `);
-            } else if (selectedCategory === 'health') {
-                htmlParts.push(`
-                    <p><strong>🩺 పెద్దల ఆరోగ్య సూచనలు:</strong></p>
-                    <ul class="list-disc pl-5 space-y-1 text-sm sm:text-base">
-                        <li>ఉదయం లేచిన తర్వాత కొద్దిగా నడక, తగినంత నీరు తాగడం మరియు సమతుల ఆహారం ఆరోగ్యానికి తోడ్పడతాయి.</li>
-                        <li>రక్తపోటు లేదా మధుమేహం ఉన్నవారు క్రమం తప్పకుండా తనిఖీ చేయించుకోవాలి.</li>
-                    </ul>
-                    <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5">
-                        గమనిక: ఇది సాధారణ సమాచారం మాత్రమే. తీవ్రమైన అనారోగ్య సమస్యలకు తప్పనిసరిగా అర్హులైన డాక్టర్‌ను సంప్రదించండి.
-                    </p>
-                `);
-            } else if (selectedCategory === 'recipes') {
-                htmlParts.push(`
-                    <p><strong>🍲 ఇంటి వంటకం చిట్కా:</strong></p>
-                    <ul class="list-disc pl-5 space-y-1 text-sm sm:text-base">
-                        <li>ఇంట్లో ఉన్న కూరగాయలు, చిరుధాన్యాలు లేదా పప్పులతో తక్కువ నూనెతో వండటం ఆరోగ్యకరం.</li>
-                        <li>తాలింపు చివర్లో కొత్తిమీర, నిమ్మరసం చేరిస్తే తాజా రుచి వస్తుంది.</li>
-                    </ul>
-                `);
-            } else if (selectedCategory === 'business') {
-                htmlParts.push(`
-                    <p><strong>💼 వ్యాపార &amp; ఉపాధి ఆలోచనలు:</strong></p>
-                    <ul class="list-disc pl-5 space-y-1 text-sm sm:text-base">
-                        <li>స్థానిక ప్రజల నిత్య అవసరాలను గమనించి, నాణ్యత మరియు సకాలంలో సేవ అందిస్తే కస్టమర్లు నిలబడతారు.</li>
-                        <li>తక్కువ పెట్టుబడితో చిన్నగా ప్రారంభించి, ఫీడ్‌బ్యాక్ ఆధారంగా మెరుగుపరుచుకోవడం సురక్షితమైన విధానం.</li>
-                    </ul>
-                `);
-            } else if (selectedCategory === 'local') {
-                htmlParts.push(`
-                    <p><strong>🏪 స్థానిక షాపులు &amp; సేవల సమాచారం:</strong></p>
-                    <p class="text-sm sm:text-base">మీకు కావలసిన సేవను కింద ఉన్న <strong>స్థానిక షాపులు &amp; సేవల డైరెక్టరీ</strong>లో సెర్చ్ చేయండి లేదా వర్గం బటన్ నొక్కండి.</p>
-                `);
-            } else if (!questionText && !samplePhotoActive && !uploadedPhotoBase64) {
-                htmlParts.push('<p>మీ ప్రశ్నను తెలుగులో అడిగితే సహాయ్ AI సరళమైన సమాధానం అందిస్తుంది.</p>');
-            }
-
-            htmlParts.push(`
-                <p class="text-xs text-slate-500 pt-1">
-                    💡 <em>లైవ్ AI సమాధానాల కోసం పై కుడి మూలలోని ⚙️ సెట్టింగ్స్ బటన్ ద్వారా మీ Gemini API కీని జోడించండి.</em>
-                </p>
-            `);
-
-            responseContent.innerHTML = htmlParts.join('');
-        }
-
-        function formatPlainTextToHtml(text) {
-            return text
-                .split(/\n\n+/)
-                .map(block => `<p class="leading-relaxed">${escapeHtml(block).replace(/\n/g, '<br>')}</p>`)
-                .join('');
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        // =====================================================================
-        // 8. LOCAL SHOPS & SERVICES DIRECTORY RENDERING
-        // =====================================================================
-        function renderServiceFilterPills() {
-            const pillsContainer = document.getElementById('serviceFilterPills');
-            const filterDefs = [
-                { key: 'all', label: 'అన్నీ' },
-                { key: 'mobile', label: 'మొబైల్' },
-                { key: 'clothing', label: 'వస్త్రాలు' },
-                { key: 'tyre', label: 'టైర్ & అలైన్‌మెంట్' },
-                { key: 'battery', label: 'బ్యాటరీ' },
-                { key: 'dental', label: 'దంత వైద్యం' },
-                { key: 'optical', label: 'కళ్లద్దాలు' },
-                { key: 'bakery', label: 'బేకరీ' },
-                { key: 'auto', label: 'ఆటో రిపేర్' }
-            ];
-
-            pillsContainer.innerHTML = filterDefs.map(f => {
-                const isActive = activeServiceFilter === f.key;
-                const cls = isActive
-                    ? 'px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-indigo-600 text-white shrink-0 cursor-pointer transition'
-                    : 'px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 shrink-0 cursor-pointer transition';
-                return `<button type="button" onclick="setServiceFilter('${f.key}')" class="${cls}">${escapeHtml(f.label)}</button>`;
-            }).join('');
-        }
-
-        function setServiceFilter(key) {
-            activeServiceFilter = key;
-            renderServiceFilterPills();
-            renderDirectory();
-        }
-
-        function renderDirectory() {
-            const query = (document.getElementById('shopSearchInput').value || '').trim().toLowerCase();
-            const grid = document.getElementById('directoryGrid');
-            const countEl = document.getElementById('directoryCount');
-
-            const filtered = LOCAL_SERVICES.filter(item => {
-                const matchesCategory = activeServiceFilter === 'all' || item.categoryKey === activeServiceFilter;
-                if (!matchesCategory) return false;
-                if (!query) return true;
-
-                const hay = `${item.name} ${item.categoryLabel} ${item.area} ${item.services}`.toLowerCase();
-                return hay.includes(query);
-            });
-
-            countEl.textContent = `${filtered.length} సేవలు`;
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-1 sm:col-span-2 text-center py-8 px-4 rounded-2xl bg-slate-50 border border-dashed border-slate-300 text-slate-500 text-sm">
-                        మీ వెతుకులాటకు సరిపోయే స్థానిక సేవ దొరకలేదు. వేరే పదం లేదా "అన్నీ" ప్రయత్నించండి.
-                    </div>
-                `;
-                return;
-            }
-
-            grid.innerHTML = filtered.map(item => `
-                <article class="rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:shadow-sm p-4 transition flex flex-col justify-between gap-2.5">
-                    <div class="space-y-1.5">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="text-2xl shrink-0" aria-hidden="true">${item.icon}</span>
-                                <h3 class="font-bold text-sm sm:text-base text-slate-900 leading-snug">${escapeHtml(item.name)}</h3>
-                            </div>
-                            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 shrink-0">
-                                ${escapeHtml(item.categoryLabel)}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-600 flex items-center gap-1.5">
-                            <span>📍</span>
-                            <span>${escapeHtml(item.area)}</span>
-                        </p>
-                        <p class="text-xs text-slate-600 flex items-center gap-1.5">
-                            <span>🕒</span>
-                            <span>${escapeHtml(item.hours)}</span>
-                        </p>
-                    </div>
-                    <p class="text-xs sm:text-sm text-slate-700 bg-white rounded-xl p-2.5 bor
+        });
+    }
+
+    document.getElementById("jumpCfgBtn").addEventListener("click", function () { handleNavClick("cfgPane", "pillCfg"); });
+    document.getElementById("pillServe").addEventListener("click", function () { handleNavClick("servePane", "pillServe"); });
+    document.getElementById("pillTrain").addEventListener("click", function () { handleNavClick("trainPane", "pillTrain"); });
+    document.getElementById("pillImprove").addEventListener("click", function () { handleNavClick("improvePane", "pillImprove"); });
+    document.getElementById("pillCfg").addEventListener("click", function () { handleNavClick("cfgPane", "pillCfg"); });
+
+    document.getElementById("lockCfgBtn").addEventListener("click", lockAdmin);
+    document.getElementById("lockFromTrainBtn").addEventListener("click", lockAdmin);
+    document.getElementById("lockFromImproveBtn").addEventListener("click", lockAdmin);
+
+    document.getElementById("saveCfgBtn").addEventListener("click", saveCfg);
+    document.getElementById("serveBtn").addEventListener("click", runServe);
+    document.getElementById("speakBtn").addEventListener("click", readOut);
+    document.getElementById("goodBtn").addEventListener("click", function () { markFeedback(true); });
+    document.getElementById("badBtn").addEventListener("click", function () { markFeedback(false); });
+    document.getElementById("saveCurrentBtn").addEventListener("click", saveCurrentToTrain);
+    document.getElementById("addTrainBtn").addEventListener("click", addTrain);
+    document.getElementById("exportBtn").addEventListener("click", exportTrainData);
+
+    refreshUI();
+})();
+</script>
+</body>
+</html>
