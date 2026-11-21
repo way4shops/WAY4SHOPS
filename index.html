@@ -942,7 +942,7 @@
         function loadWay4ShopCategories(selectElementId) {
             const selectDropdown = document.getElementById(selectElementId);
             if (!selectDropdown) return;
-            selectDropdown.innerHTML = '<option value="">-- Select Category/Area --</option>';
+            selectDropdown.innerHTML = '<option value="">-- Select State/Category/Area --</option>';
             way4shopCategories.forEach(category => {
                 let option = document.createElement('option');
                 option.value = category.toLowerCase();
